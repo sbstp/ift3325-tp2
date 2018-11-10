@@ -1,0 +1,40 @@
+<project name="ift3325-tp2" default="dist">
+    <property name="source.dir" value="src" />
+    <property name="class.dir" value="bin" />
+    <property name="jar.dir" value="dist" />
+    <property name="sender.jar" value="${jar.dir}/sender.jar" />
+    <property name="receiver.jar" value="${jar.dir}/receiver.jar" />
+
+    <target name="clean">
+        <delete dir="${class.dir}" />
+        <delete dir="${jar.dir}" />
+    </target>
+
+    <target name="compile" depends="clean">
+        <mkdir dir="${class.dir}" />
+        <javac srcdir="${source.dir}" destdir="${class.dir}">
+        </javac>
+    </target>
+
+    <target name="sender-jar" depends="compile">
+        <mkdir dir="${jar.dir}" />
+        <jar destfile="${sender.jar}" basedir="${class.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="tp2.Sender" />
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="receiver-jar" depends="compile">
+        <mkdir dir="${jar.dir}" />
+        <jar destfile="${receiver.jar}" basedir="${class.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="tp2.Receiver" />
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="dist" depends="sender-jar,receiver-jar">
+    </target>
+
+</project>
