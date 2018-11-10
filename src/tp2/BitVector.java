@@ -17,12 +17,26 @@ public class BitVector implements Iterable<Boolean> {
         bits = new ArrayList<>(capacity);
     }
 
+    public int length() {
+        return bits.size();
+    }
+
     public void push(boolean bit) {
         bits.add(bit);
     }
 
+    public void push(boolean... bits) {
+        for (boolean bit : bits) {
+            push(bit);
+        }
+    }
+
     public boolean get(int i) {
         return bits.get(i);
+    }
+
+    public void truncate(int length) {
+        bits.subList(length, bits.size()).clear();
     }
 
     public Iterator<Boolean> iterator() {
@@ -71,13 +85,48 @@ public class BitVector implements Iterable<Boolean> {
         return buf;
     }
 
-    public String toString() {
+    public String toBitString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("BitVector(");
         for (Boolean bit : this) {
             sb.append(bit ? "1" : "0");
         }
-        sb.append(")");
         return sb.toString();
+    }
+
+    public static BitVector fromBitString(String bitString) {
+        BitVector bv = new BitVector(bitString.length());
+        for (int i = 0; i < bitString.length(); i++) {
+            char c = bitString.charAt(i);
+            if (c == '0') {
+                bv.push(false);
+            } else if (c == '1') {
+                bv.push(true);
+            } else {
+                throw new IllegalArgumentException("bit string contains invalid characters");
+            }
+        }
+        return bv;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+        if (o instanceof BitVector) {
+            BitVector other = (BitVector) o;
+            if (length() != other.length())
+                return false;
+            for (int i = 0; i < length(); i++) {
+                if (get(i) != other.get(i))
+                    return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("BitVector(%s)", toBitString());
     }
 }
