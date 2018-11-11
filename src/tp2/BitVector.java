@@ -31,6 +31,16 @@ public class BitVector implements Iterable<Boolean> {
         }
     }
 
+    public void push(BitVector bits) {
+        for (boolean bit : bits) {
+            push(bit);
+        }
+    }
+
+    public void push(byte... b) {
+        push(BitVector.fromBytes(b));
+    }
+
     public boolean get(int i) {
         return bits.get(i);
     }
@@ -41,6 +51,17 @@ public class BitVector implements Iterable<Boolean> {
 
     public void autoTruncate() {
         truncate(length() - length() % 8);
+    }
+
+    // Pads a BitVector to its nearest multiple of 8 from the left with 0s.
+    public BitVector padLeft() {
+        int to = (length() / 8 + 1) * 8;
+        BitVector copy = new BitVector(to);
+        while (copy.length() < to - length()) {
+            copy.push(false);
+        }
+        copy.push(this);
+        return copy;
     }
 
     public Iterator<Boolean> iterator() {

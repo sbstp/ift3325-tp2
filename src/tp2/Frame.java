@@ -22,7 +22,7 @@ public class Frame {
     public byte type;
     public byte num;
     public byte[] data;
-    public short crc;
+    public BitVector crc;
 
     private Frame() {
     }
@@ -32,7 +32,7 @@ public class Frame {
         f.type = TYPE_INFO;
         f.num = num;
         f.data = data;
-        f.crc = computeCRC(data);
+        f.crc = PolynomialGeneration.polynomialGenerator(f.type, f.num, data).padLeft();
         return f;
     }
 
@@ -49,9 +49,9 @@ public class Frame {
         buf.put(type);
         buf.put(num);
         buf.put(data);
-        // TODO: crc
-        buf.put((byte) 0);
-        buf.put((byte) 0);
+        buf.put(crc.toBytes());
+        // System.out.println("crc size " + crc.toBytes().length);
+        // System.out.println("crc:" + crc.toString());
 
         BitVector bv = BitVector.fromBytes(buf.bytes());
         // The bit stuffing might add a few bits to this vector, which means that the
@@ -80,14 +80,15 @@ public class Frame {
         f.type = bytes[0];
         f.num = bytes[1];
         f.data = Arrays.copyOfRange(bytes, 2, bytes.length - 2);
-        // TODO: crc
-        // f.crc = bytes[bytes.length - 1];
+        f.crc = BitVector.fromBytes(bytes, bytes.length - 2, bytes.length);
+
+        // System.out.println("received CRC " + f.crc);
+
+        if (!PolynomialGeneration.polynomialVerification(f.type, f.num, f.data, f.crc)) {
+            throw new IllegalArgumentException("CRC validation has failed");
+        }
 
         return f;
-    }
-
-    private static short computeCRC(byte[] data) {
-        return 0;
     }
 
 }
