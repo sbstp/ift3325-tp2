@@ -39,6 +39,10 @@ public class BitVector implements Iterable<Boolean> {
         bits.subList(length, bits.size()).clear();
     }
 
+    public void autoTruncate() {
+        truncate(length() - length() % 8);
+    }
+
     public Iterator<Boolean> iterator() {
         final int size = bits.size();
         return new Iterator<Boolean>() {
@@ -54,9 +58,9 @@ public class BitVector implements Iterable<Boolean> {
         };
     }
 
-    public static BitVector fromBytes(byte[] buf) {
-        BitVector bv = new BitVector(buf.length * 8);
-        for (int i = 0; i < buf.length; i++) {
+    public static BitVector fromBytes(byte[] buf, int start, int end) {
+        BitVector bv = new BitVector((end - start) * 8);
+        for (int i = start; i < end; i++) {
             for (int j = 0; j < 8; j++) {
                 if ((buf[i] & (1 << j)) == (1 << j)) {
                     bv.push(true);
@@ -66,6 +70,10 @@ public class BitVector implements Iterable<Boolean> {
             }
         }
         return bv;
+    }
+
+    public static BitVector fromBytes(byte[] buf) {
+        return fromBytes(buf, 0, buf.length);
     }
 
     public byte[] toBytes() {

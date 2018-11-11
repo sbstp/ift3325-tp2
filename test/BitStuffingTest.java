@@ -1,4 +1,4 @@
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 import tp2.*;
@@ -67,6 +67,18 @@ public class BitStuffingTest {
         BitVector bv2 = BitStuffing.decode(bv1);
 
         assertEquals(bv2.toBitString(), "01010101");
+    }
+
+    @Test
+    public void testFullLong() {
+        byte[] payload = new byte[] { (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF };
+        BitVector bv1 = BitVector.fromBytes(payload);
+        BitVector bv2 = BitStuffing.encode(bv1);
+        BitVector bv3 = BitStuffing.decode(bv2);
+        // System.out.println(bv1);
+        // System.out.println(bv2);
+        // System.out.println(bv3);
+        assertArrayEquals(payload, bv3.toBytes());
     }
 
 }

@@ -1,9 +1,15 @@
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
-import tp2.BitVector;
+import tp2.*;
 
 public class BitVectorTest {
+
+    @Test
+    public void testFrameFlag() {
+        BitVector bv1 = BitVector.fromBytes(new byte[] { Frame.FRAME_FLAG });
+        assertEquals(bv1.toBitString(), "01111110");
+    }
 
     @Test
     public void testToBitString() {
