@@ -17,43 +17,98 @@ public class BitVector implements Iterable<Boolean> {
         bits = new ArrayList<>(capacity);
     }
 
+    /**
+     * @return Number of bits in this vector.
+     */
     public int length() {
         return bits.size();
     }
 
+    /**
+     * Push a single bit into this vector.
+     *
+     * @param bit
+     */
     public void push(boolean bit) {
         bits.add(bit);
     }
 
+    /**
+     * Push an array of bits into this vector.
+     *
+     * @param bits
+     */
     public void push(boolean... bits) {
         for (boolean bit : bits) {
             push(bit);
         }
     }
 
+    /**
+     * Push every bit from the given BitVector into this vector.
+     *
+     * @param bits
+     */
     public void push(BitVector bits) {
         for (boolean bit : bits) {
             push(bit);
         }
     }
 
-    public void push(byte... b) {
-        push(BitVector.fromBytes(b));
+    /**
+     * Push every bit for each byte into this vector.
+     *
+     * @param bytes
+     */
+    public void push(byte... bytes) {
+        push(BitVector.fromBytes(bytes));
     }
 
-    public boolean get(int i) {
-        return bits.get(i);
+    /**
+     * Get the bit at the given position.
+     *
+     * @param index
+     * @return
+     */
+    public boolean get(int index) {
+        return bits.get(index);
     }
 
+    /**
+     * Set the bit at the given position.
+     *
+     * @param index
+     * @param bit
+     */
+    public void set(int index, boolean bit) {
+        bits.set(index, bit);
+    }
+
+    /**
+     * Truncate the vector to the given length, dropping the extra bits if any.
+     *
+     * @param length
+     */
     public void truncate(int length) {
         bits.subList(length, bits.size()).clear();
     }
 
+    /**
+     * Truncate the vector to a power of 8, dropping extra bits if any.
+     *
+     * Example: 10 bits, becomes 8 bits.
+     */
     public void autoTruncate() {
         truncate(length() - length() % 8);
     }
 
-    // Pads a BitVector to its nearest multiple of 8 from the left with 0s.
+    /**
+     * Pads a vector to its nearest multiple of 8 from the left using 0s.
+     *
+     * Example: 10011 becomes 00010011
+     *
+     * @return A new vector that is padded.
+     */
     public BitVector padLeft() {
         int to = (length() / 8 + 1) * 8;
         BitVector copy = new BitVector(to);
@@ -64,6 +119,9 @@ public class BitVector implements Iterable<Boolean> {
         return copy;
     }
 
+    /**
+     * Create an iterator over the bits in this vector.
+     */
     public Iterator<Boolean> iterator() {
         final int size = bits.size();
         return new Iterator<Boolean>() {
@@ -79,6 +137,14 @@ public class BitVector implements Iterable<Boolean> {
         };
     }
 
+    /**
+     * Create a bit vector from a sequence of bytes using part of the sequence.
+     *
+     * @param buf   a buffer of bytes
+     * @param start the start index in the buffer of bytes
+     * @param end   the end index in the buffer of bytes
+     * @return
+     */
     public static BitVector fromBytes(byte[] buf, int start, int end) {
         BitVector bv = new BitVector((end - start) * 8);
         for (int i = start; i < end; i++) {
@@ -93,10 +159,23 @@ public class BitVector implements Iterable<Boolean> {
         return bv;
     }
 
+    /**
+     * Create a bit vector from a sequence of bytes using the whole sequence.
+     *
+     * @param buf
+     * @return
+     */
     public static BitVector fromBytes(byte[] buf) {
         return fromBytes(buf, 0, buf.length);
     }
 
+    /**
+     * Convert this bit vector to a sequence of bytes. If the length of the vector
+     * is not a multiple of 8, the last byte will get automatic padding (0s) in the
+     * high bits.
+     *
+     * @return
+     */
     public byte[] toBytes() {
         int bufsize = bits.size() / 8;
         if (bits.size() % 8 != 0)
@@ -114,14 +193,12 @@ public class BitVector implements Iterable<Boolean> {
         return buf;
     }
 
-    public String toBitString() {
-        StringBuilder sb = new StringBuilder();
-        for (Boolean bit : this) {
-            sb.append(bit ? "1" : "0");
-        }
-        return sb.toString();
-    }
-
+    /**
+     * Create a vector from a String filled with 0s and 1s.
+     *
+     * @param bitString
+     * @return
+     */
     public static BitVector fromBitString(String bitString) {
         BitVector bv = new BitVector(bitString.length());
         for (int i = 0; i < bitString.length(); i++) {
@@ -135,6 +212,19 @@ public class BitVector implements Iterable<Boolean> {
             }
         }
         return bv;
+    }
+
+    /**
+     * Convert this vector to a String filled with 0s and 1s.
+     * 
+     * @return
+     */
+    public String toBitString() {
+        StringBuilder sb = new StringBuilder();
+        for (Boolean bit : this) {
+            sb.append(bit ? "1" : "0");
+        }
+        return sb.toString();
     }
 
     @Override

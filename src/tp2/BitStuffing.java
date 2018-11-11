@@ -3,6 +3,13 @@ package tp2;
 public class BitStuffing {
     public static final int ONE_SEQUENCE = 5;
 
+    /**
+     * Apply bit stuffing to the given vecotr, returning a new vector with stuffed
+     * bits.
+     *
+     * @param src
+     * @return
+     */
     public static BitVector encode(BitVector src) {
         BitVector dst = new BitVector();
         int ones = 0;
@@ -26,6 +33,13 @@ public class BitStuffing {
         return dst;
     }
 
+    /**
+     * Remove bit stuffing from the given vector, returning a new vector without
+     * stuffed bits.
+     *
+     * @param src
+     * @return
+     */
     public static BitVector decode(BitVector src) {
         BitVector dst = new BitVector();
         int ones = 0;

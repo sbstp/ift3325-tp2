@@ -18,29 +18,61 @@ public class Frame {
     public static final byte TYPE_END = (byte) 'F';
     public static final byte TYPE_PBIT = (byte) 'P';
 
-    public byte flag = FRAME_FLAG;
     public byte type;
     public byte num;
     public byte[] data;
     public BitVector crc;
 
+    private Frame(byte type, byte num, byte[] data) {
+        this.type = type;
+        this.num = num;
+        this.data = data;
+        this.crc = PolynomialGeneration.polynomialGenerator(type, num, data).padLeft();
+    }
+
+    private Frame(byte type, byte num) {
+        this(type, num, new byte[] {});
+    }
+
+    private Frame(byte type) {
+        this(type, (byte) 0);
+    }
+
     private Frame() {
     }
 
     public static Frame newInfo(byte num, byte[] data) {
-        Frame f = new Frame();
-        f.type = TYPE_INFO;
-        f.num = num;
-        f.data = data;
-        f.crc = PolynomialGeneration.polynomialGenerator(f.type, f.num, data).padLeft();
-        return f;
+        return new Frame(TYPE_INFO, num, data);
     }
 
+    public static Frame newConnection() {
+        return new Frame(TYPE_CONNECTION);
+    }
+
+    public static Frame newAcknoledge(byte num) {
+        return new Frame(TYPE_INFO, num);
+    }
+
+    public static Frame newReject(byte num) {
+        return new Frame(TYPE_REJECT, num);
+    }
+
+    public static Frame newEnd() {
+        return new Frame(TYPE_END);
+    }
+
+    public static Frame newPbit() {
+        return new Frame(TYPE_PBIT);
+    }
+
+    /**
+     * Convert this frame to bytes.
+     */
     public byte[] serialize() {
         Buffer buf = new Buffer();
-        buf.put(flag);
+        buf.put(FRAME_FLAG);
         buf.put(getStuffedData());
-        buf.put(flag);
+        buf.put(FRAME_FLAG);
         return buf.bytes();
     }
 
@@ -61,9 +93,13 @@ public class Frame {
         return BitStuffing.encode(bv).toBytes();
     }
 
-    public static Frame deserialize(byte[] b) {
+    /**
+     * Convert bytes to a Frame. The sequence of bytes should start and end with the
+     * flag.
+     */
+    public static Frame deserialize(byte[] b) throws DeserializationException, CRCValidationException {
         if (b[0] != FRAME_FLAG || b[b.length - 1] != FRAME_FLAG) {
-            throw new IllegalArgumentException("invalid frame (flags)");
+            throw new DeserializationException("invalid frame (flags)");
         }
 
         BitVector stuffedData = BitVector.fromBytes(b, 1, b.length - 1);
@@ -71,7 +107,7 @@ public class Frame {
         data.autoTruncate(); // remove between 1 to 7 bits that were added by byte padding if necessary
 
         if (data.length() % 8 != 0) {
-            throw new IllegalArgumentException("decoding bit stuffed data did not yield a multiple of 8");
+            throw new DeserializationException("decoding bit stuffed data did not yield a multiple of 8");
         }
 
         byte[] bytes = data.toBytes();
@@ -85,7 +121,7 @@ public class Frame {
         // System.out.println("received CRC " + f.crc);
 
         if (!PolynomialGeneration.polynomialVerification(f.type, f.num, f.data, f.crc)) {
-            throw new IllegalArgumentException("CRC validation has failed");
+            throw new CRCValidationException();
         }
 
         return f;
