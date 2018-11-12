@@ -1,10 +1,19 @@
 package tp2;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.StandardOpenOption;
 
 public class Receiver {
     public static void main(String[] args) throws IOException {
-        new Receiver().mainLoop();
+        Receiver r = new Receiver();
+        r.mainLoop();
+
+        try (FileOutputStream out = new FileOutputStream("destination.txt")) {
+            out.write(r.data.toBytes());
+        }
     }
 
     private Buffer data = new Buffer();
@@ -20,12 +29,15 @@ public class Receiver {
         DataLinkStream stream = listener.accept();
         stream.setPrintLog(true);
 
-        while (true) {
+        boolean finished = false;
+
+        while (!finished) {
             try {
                 Frame f = stream.readFrame();
 
                 if (f.type == Frame.TYPE_CONNECTION) {
                     windowSize = f.num;
+                    stream.writeFrame(Frame.newAcknoledge(0));
                 } else if (f.type == Frame.TYPE_INFO) {
                     if (f.num != expected) {
                         stream.writeFrame(Frame.newReject(expected));
@@ -35,14 +47,17 @@ public class Receiver {
                         stream.writeFrame(Frame.newAcknoledge(expected));
                     }
                 } else if (f.type == Frame.TYPE_END) {
-                    break;
+                    finished = true;
                 }
             } catch (DeserializationException | CRCValidationException e) {
-                // pass
-                // System.out.println(e.getMessage());
+                stream.writeFrame(Frame.newReject(expected));
                 e.printStackTrace();
             }
         }
+    }
+
+    public Buffer getData() {
+        return data;
     }
 
 }

@@ -33,6 +33,12 @@ public class BitVector implements Iterable<Boolean> {
         bits.add(bit);
     }
 
+    public void push(boolean bit, int times) {
+        for (int i = 0; i < times; i++) {
+            push(bit);
+        }
+    }
+
     /**
      * Push an array of bits into this vector.
      *

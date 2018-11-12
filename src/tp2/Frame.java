@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 public class Frame {
     // 100 octets maximum de données par trames
-    public static final int MTU = 100;
+    public static final int MTU = 50;
 
     public static final byte FRAME_FLAG = Byte.parseByte("01111110", 2);
 
@@ -28,6 +28,9 @@ public class Frame {
         this.num = (byte) num;
         this.data = data;
         this.crc = PolynomialGeneration.polynomialGenerator((byte) type, (byte) num, data).padLeft(16);
+        if (this.crc.length() > 16) {
+            throw new IllegalStateException("CRC code is larger than 16 bits: " + this.crc.length());
+        }
     }
 
     private Frame(int type, int num) {
@@ -149,7 +152,8 @@ public class Frame {
         case Frame.TYPE_END:
             return String.format("Frame(END)");
         case Frame.TYPE_INFO:
-            return String.format("Frame(INFO, num=%d, data='%s')", num, new String(data.toBytes()));
+            return String.format("Frame(INFO, num=%d, data='%s')", num,
+                    new String(data.toBytes()).replace("\n", "\\n"));
         case Frame.TYPE_POLL:
             return String.format("Frame(POLL)");
         case Frame.TYPE_REJECT:

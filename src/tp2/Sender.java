@@ -1,10 +1,14 @@
 package tp2;
 
 import java.awt.Window;
+import java.io.BufferedInputStream;
 import java.io.DataInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.ArrayList;
 
@@ -15,8 +19,7 @@ public class Sender {
         stream.setPrintLog(true);
         stream.setTimeout(3000);
         Sender s = new Sender(stream, 5);
-        s.send(new Buffer("Hello"));
-        s.send(new Buffer("World"));
+        s.send(new Buffer(Files.readAllBytes(Paths.get("source.txt"))));
         s.mainLoop();
     }
 
@@ -42,7 +45,9 @@ public class Sender {
     }
 
     public void send(Buffer b) {
-        queue.add(b);
+        for (int start = 0; start < b.length(); start += Frame.MTU) {
+            queue.add(b.slice(start, Math.min(start + Frame.MTU, b.length())));
+        }
     }
 
     public void mainLoop() throws IOException {

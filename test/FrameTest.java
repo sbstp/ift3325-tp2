@@ -7,14 +7,16 @@ public class FrameTest {
 
     @Test
     public void testFrameBasic() throws CRCValidationException, DeserializationException {
-        Frame f1 = Frame.newInfo((byte) 5, new Buffer("Hello world!"));
+        Frame f1 = Frame.newInfo((byte) 5, new Buffer(
+                "  that brings up and maintains userspace services.\n\n       For compatibility with SysV, if systemd i"));
         Buffer data = f1.serialize();
 
         Frame f2 = Frame.deserialize(data);
 
         assertEquals(f1.type, Frame.TYPE_INFO);
         assertEquals(f2.num, 5);
-        assertEquals(new String(f2.data.toBytes()), "Hello world!");
+        assertEquals(new String(f2.data.toBytes()),
+                "  that brings up and maintains userspace services.\n\n       For compatibility with SysV, if systemd i");
     }
 
     @Test

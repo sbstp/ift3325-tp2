@@ -14,13 +14,10 @@ public class PolynomialGeneration {
         message.push(type);
         message.push(num);
         message.push(data);
-        message.push(Buffer.repeat((byte) 0, 2)); // 16 bits at 0
-        // BitVector message = BitVector
-        // .fromBitString(type.toBitString() + num.toBitString() + data.toBitString() +
-        // "0000000000000000");
+        message.push(false, 16); // 16 bits at 0
 
         // Executes the Algorithm
-        while (message.length() > 17) {
+        while (message.length() > 16) {
             BitVector temp = new BitVector();
             for (int i = 0; i < POLYNOMIAL.length(); i++) {
                 if (!(message.get(i) == POLYNOMIAL.get(i))) {
@@ -51,12 +48,9 @@ public class PolynomialGeneration {
         message.push(num);
         message.push(data);
         message.push(crc);
-        // BitVector message = BitVector
-        // .fromBitString(type.toBitString() + num.toBitString() + data.toBitString() +
-        // crc.toBitString());
 
         // Executes the Algorithm
-        while (message.length() > 17) {
+        while (message.length() > 16) {
             BitVector temp = new BitVector();
             for (int i = 0; i < POLYNOMIAL.length(); i++) {
                 if (!(message.get(i) == POLYNOMIAL.get(i))) {
