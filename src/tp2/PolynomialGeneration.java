@@ -5,16 +5,16 @@ public class PolynomialGeneration {
     // The polynomial the algorithm uses
     private static final BitVector POLYNOMIAL = BitVector.fromBitString("10001000000100001");
 
-    public static BitVector polynomialGenerator(byte type, byte num, byte[] data) {
+    public static BitVector polynomialGenerator(byte type, byte num, Buffer data) {
         // RECEIVES: the type, number and data of the frame
         // RETURNS: the CRC
 
         // Concatenate the type, num, data and the 16 zeroes
-        BitVector message = new BitVector(data.length + 4);
+        BitVector message = new BitVector(data.length() + 4);
         message.push(type);
         message.push(num);
         message.push(data);
-        message.push(new byte[] { 0, 0 }); // 16 bits at 0
+        message.push(Buffer.repeat((byte) 0, 2)); // 16 bits at 0
         // BitVector message = BitVector
         // .fromBitString(type.toBitString() + num.toBitString() + data.toBitString() +
         // "0000000000000000");
@@ -41,12 +41,12 @@ public class PolynomialGeneration {
         return message;
     }
 
-    public static boolean polynomialVerification(byte type, byte num, byte[] data, BitVector crc) {
+    public static boolean polynomialVerification(byte type, byte num, Buffer data, BitVector crc) {
         // RECEIVES: the type, num, data and crc of the frame
         // RETURNS: True if the end value is all zeroes, otherwise it returns false
 
         // Concatenate the type, num, data and the crc
-        BitVector message = new BitVector(data.length + 4);
+        BitVector message = new BitVector(data.length() + 4);
         message.push(type);
         message.push(num);
         message.push(data);

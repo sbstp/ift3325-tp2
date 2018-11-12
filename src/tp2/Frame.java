@@ -20,10 +20,10 @@ public class Frame {
 
     public byte type;
     public byte num;
-    public byte[] data;
+    public Buffer data;
     public BitVector crc;
 
-    private Frame(byte type, byte num, byte[] data) {
+    private Frame(byte type, byte num, Buffer data) {
         this.type = type;
         this.num = num;
         this.data = data;
@@ -31,7 +31,7 @@ public class Frame {
     }
 
     private Frame(byte type, byte num) {
-        this(type, num, new byte[] {});
+        this(type, num, new Buffer());
     }
 
     private Frame(byte type) {
@@ -41,7 +41,7 @@ public class Frame {
     private Frame() {
     }
 
-    public static Frame newInfo(byte num, byte[] data) {
+    public static Frame newInfo(byte num, Buffer data) {
         return new Frame(TYPE_INFO, num, data);
     }
 
@@ -50,7 +50,7 @@ public class Frame {
     }
 
     public static Frame newAcknoledge(byte num) {
-        return new Frame(TYPE_INFO, num);
+        return new Frame(TYPE_ACKNOLEDGE, num);
     }
 
     public static Frame newReject(byte num) {
@@ -68,24 +68,24 @@ public class Frame {
     /**
      * Convert this frame to bytes.
      */
-    public byte[] serialize() {
+    public Buffer serialize() {
         Buffer buf = new Buffer();
-        buf.put(FRAME_FLAG);
-        buf.put(getStuffedData());
-        buf.put(FRAME_FLAG);
-        return buf.bytes();
+        buf.push(FRAME_FLAG);
+        buf.push(generateStuffedData());
+        buf.push(FRAME_FLAG);
+        return buf;
     }
 
-    private byte[] getStuffedData() {
+    private byte[] generateStuffedData() {
         Buffer buf = new Buffer();
-        buf.put(type);
-        buf.put(num);
-        buf.put(data);
-        buf.put(crc.toBytes());
+        buf.push(type);
+        buf.push(num);
+        data.copyInto(buf);
+        buf.push(crc.toBytes());
         // System.out.println("crc size " + crc.toBytes().length);
         // System.out.println("crc:" + crc.toString());
 
-        BitVector bv = BitVector.fromBytes(buf.bytes());
+        BitVector bv = BitVector.fromBuffer(buf);
         // The bit stuffing might add a few bits to this vector, which means that the
         // amount of bits won't be dividible by 8 anymore. So padding is created
         // inherently by the call to .toBytes(), the padding must be removed later
@@ -97,26 +97,26 @@ public class Frame {
      * Convert bytes to a Frame. The sequence of bytes should start and end with the
      * flag.
      */
-    public static Frame deserialize(byte[] b) throws DeserializationException, CRCValidationException {
-        if (b[0] != FRAME_FLAG || b[b.length - 1] != FRAME_FLAG) {
+    public static Frame deserialize(Buffer bytes) throws DeserializationException, CRCValidationException {
+        if (bytes.first() != FRAME_FLAG || bytes.last() != FRAME_FLAG) {
             throw new DeserializationException("invalid frame (flags)");
         }
 
-        BitVector stuffedData = BitVector.fromBytes(b, 1, b.length - 1);
-        BitVector data = BitStuffing.decode(stuffedData);
-        data.autoTruncate(); // remove between 1 to 7 bits that were added by byte padding if necessary
+        BitVector stuffedBits = BitVector.fromBuffer(bytes, 1, bytes.length() - 1);
+        BitVector decodedBits = BitStuffing.decode(stuffedBits);
+        decodedBits.autoTruncate(); // remove between 1 to 7 bits that were added by byte padding if necessary
 
-        if (data.length() % 8 != 0) {
+        if (decodedBits.length() % 8 != 0) {
             throw new DeserializationException("decoding bit stuffed data did not yield a multiple of 8");
         }
 
-        byte[] bytes = data.toBytes();
+        Buffer data = decodedBits.toBuffer();
 
         Frame f = new Frame();
-        f.type = bytes[0];
-        f.num = bytes[1];
-        f.data = Arrays.copyOfRange(bytes, 2, bytes.length - 2);
-        f.crc = BitVector.fromBytes(bytes, bytes.length - 2, bytes.length);
+        f.type = data.get(0);
+        f.num = data.get(1);
+        f.data = data.slice(2, data.length() - 2);
+        f.crc = BitVector.fromBuffer(data, data.length() - 2, data.length());
 
         // System.out.println("received CRC " + f.crc);
 
@@ -125,6 +125,26 @@ public class Frame {
         }
 
         return f;
+    }
+
+    @Override
+    public String toString() {
+        switch (type) {
+        case Frame.TYPE_ACKNOLEDGE:
+            return String.format("Frame(ACK, num=%d)", num);
+        case Frame.TYPE_CONNECTION:
+            return String.format("Frame(CONNECTION)");
+        case Frame.TYPE_END:
+            return String.format("Frame(END)");
+        case Frame.TYPE_INFO:
+            return String.format("Frame(INFO, num=%d, data='%s')", num, new String(data.toBytes()));
+        case Frame.TYPE_PBIT:
+            return String.format("Frame(PBIT)");
+        case Frame.TYPE_REJECT:
+            return String.format("Frame(REJECT, num=%d)", num);
+        default:
+            throw new IllegalStateException();
+        }
     }
 
 }

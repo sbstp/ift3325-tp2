@@ -65,6 +65,15 @@ public class BitVector implements Iterable<Boolean> {
     }
 
     /**
+     * Push every bit for each byte into this vector.
+     * 
+     * @param buf
+     */
+    public void push(Buffer buf) {
+        push(BitVector.fromBuffer(buf));
+    }
+
+    /**
      * Get the bit at the given position.
      *
      * @param index
@@ -170,6 +179,38 @@ public class BitVector implements Iterable<Boolean> {
     }
 
     /**
+     * Create a bit vector from a buffer using part of it.
+     *
+     * @param buf   a buffer of bytes
+     * @param start the start index in the buffer of bytes
+     * @param end   the end index in the buffer of bytes
+     * @return
+     */
+    public static BitVector fromBuffer(Buffer buf, int start, int end) {
+        BitVector bv = new BitVector((end - start) * 8);
+        for (int i = start; i < end; i++) {
+            for (int j = 0; j < 8; j++) {
+                if ((buf.get(i) & (1 << j)) == (1 << j)) {
+                    bv.push(true);
+                } else {
+                    bv.push(false);
+                }
+            }
+        }
+        return bv;
+    }
+
+    /**
+     * Create a bit vector from a sequence of bytes using the whole sequence.
+     *
+     * @param buf
+     * @return
+     */
+    public static BitVector fromBuffer(Buffer buf) {
+        return fromBuffer(buf, 0, buf.length());
+    }
+
+    /**
      * Convert this bit vector to a sequence of bytes. If the length of the vector
      * is not a multiple of 8, the last byte will get automatic padding (0s) in the
      * high bits.
@@ -191,6 +232,10 @@ public class BitVector implements Iterable<Boolean> {
             }
         }
         return buf;
+    }
+
+    public Buffer toBuffer() {
+        return new Buffer(toBytes());
     }
 
     /**
@@ -216,7 +261,7 @@ public class BitVector implements Iterable<Boolean> {
 
     /**
      * Convert this vector to a String filled with 0s and 1s.
-     * 
+     *
      * @return
      */
     public String toBitString() {
