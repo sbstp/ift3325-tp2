@@ -18,6 +18,17 @@ public class FrameTest {
     }
 
     @Test
+    public void testControlFrame() throws CRCValidationException, DeserializationException {
+        Frame f1 = Frame.newConnection(5);
+        Buffer data = f1.serialize();
+
+        Frame f2 = Frame.deserialize(data);
+
+        assertEquals(f1.type, Frame.TYPE_CONNECTION);
+        assertEquals(f2.num, 5);
+    }
+
+    @Test
     public void testFrameStuffed() throws CRCValidationException, DeserializationException {
         // worst case stuffing payload
         Buffer payload = Buffer.repeat((byte) 0xFF, 20);

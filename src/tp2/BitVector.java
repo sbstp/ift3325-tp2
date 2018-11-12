@@ -112,16 +112,15 @@ public class BitVector implements Iterable<Boolean> {
     }
 
     /**
-     * Pads a vector to its nearest multiple of 8 from the left using 0s.
+     * Pads a vector to it the given number of bits from the left using 0s.
      *
      * Example: 10011 becomes 00010011
      *
      * @return A new vector that is padded.
      */
-    public BitVector padLeft() {
-        int to = (length() / 8 + 1) * 8;
-        BitVector copy = new BitVector(to);
-        while (copy.length() < to - length()) {
+    public BitVector padLeft(int bits) {
+        BitVector copy = new BitVector(bits);
+        for (int i = 0; i < bits - length(); i++) {
             copy.push(false);
         }
         copy.push(this);

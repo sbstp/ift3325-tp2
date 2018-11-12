@@ -56,6 +56,10 @@ public class Buffer implements Iterable<Byte> {
         }
     }
 
+    public void push(Buffer other) {
+        other.copyInto(this);
+    }
+
     public void set(int index, byte val) {
         buff.set(index, val);
     }

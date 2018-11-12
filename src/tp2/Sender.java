@@ -10,17 +10,17 @@ import java.util.ArrayList;
 
 public class Sender {
 
-    public static void main(String[] args) {
-        System.out.println("sender");
+    public static void main(String[] args) throws IOException {
+        DataLinkStream stream = new DataLinkStream("localhost", 6969);
+        stream.setPrintLog(true);
+        stream.setTimeout(3000);
+        Sender s = new Sender(stream, 5);
+        s.send(new Buffer("Hello"));
+        s.send(new Buffer("World"));
+        s.mainLoop();
     }
 
-    private LinkedList<Buffer> queue = new LinkedList<>();
-    private LinkedList<WindowItem> window = new LinkedList<>();
-    private int seqNum = 0;
-    private DataLinkStream stream;
-    private int windowSize;
-
-    public class WindowItem {
+    public static class WindowItem {
         public byte num;
         public Buffer data;
 
@@ -29,6 +29,12 @@ public class Sender {
             this.data = data;
         }
     }
+
+    private LinkedList<Buffer> queue = new LinkedList<>();
+    private LinkedList<WindowItem> window = new LinkedList<>();
+    private int seqNum = 0;
+    private DataLinkStream stream;
+    private int windowSize;
 
     public Sender(DataLinkStream stream, int n) throws IOException {
         this.stream = stream;
@@ -70,12 +76,9 @@ public class Sender {
                     // read timeout, send poll
                     stream.writeFrame(Frame.newPoll());
                     pollRequested = true;
-                } catch (DeserializationException e) {
+                } catch (DeserializationException | CRCValidationException e) {
                     // frame dropped
-                    System.out.println("deserialization error " + e);
-                } catch (CRCValidationException e) {
-                    // frame dropped
-                    System.out.println("crc error" + e);
+                    // System.out.println("deserialization error " + e);
                 }
             }
         }

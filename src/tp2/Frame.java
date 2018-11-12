@@ -27,7 +27,7 @@ public class Frame {
         this.type = (byte) type;
         this.num = (byte) num;
         this.data = data;
-        this.crc = PolynomialGeneration.polynomialGenerator((byte) type, (byte) num, data).padLeft();
+        this.crc = PolynomialGeneration.polynomialGenerator((byte) type, (byte) num, data).padLeft(16);
     }
 
     private Frame(int type, int num) {
@@ -80,10 +80,11 @@ public class Frame {
         Buffer buf = new Buffer();
         buf.push(type);
         buf.push(num);
-        data.copyInto(buf);
+        buf.push(data);
         buf.push(crc.toBytes());
-        // System.out.println("crc size " + crc.toBytes().length);
-        // System.out.println("crc:" + crc.toString());
+
+        // System.out.format("buf=%d, data=%d, crc=%s\n", buf.length(), data.length(),
+        // crc.toBitString());
 
         BitVector bv = BitVector.fromBuffer(buf);
         // The bit stuffing might add a few bits to this vector, which means that the

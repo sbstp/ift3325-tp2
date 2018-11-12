@@ -6,18 +6,18 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class DataLinkStream {
 
-    public static final int TIMEOUT = 3000;
-
+    private ArrayList<String> log = new ArrayList<>();
+    private boolean printLog = false;
     private Socket sock;
     private DataInputStream in;
     private DataOutputStream out;
 
     public DataLinkStream(String host, int port) throws IOException {
         this(new Socket(host, port));
-
     }
 
     DataLinkStream(Socket sock) throws IOException {
@@ -29,9 +29,15 @@ public class DataLinkStream {
     protected DataLinkStream() {
     }
 
-    public Frame readFrame() throws IOException, DeserializationException, CRCValidationException {
-        sock.setSoTimeout(TIMEOUT);
+    public void setPrintLog(boolean printLog) {
+        this.printLog = printLog;
+    }
 
+    public void setTimeout(int timeout) throws IOException {
+        sock.setSoTimeout(timeout);
+    }
+
+    public Frame readFrame() throws IOException, DeserializationException, CRCValidationException {
         Buffer buf = new Buffer();
         byte b;
 
@@ -47,12 +53,28 @@ public class DataLinkStream {
             buf.push(b);
         } while (b != Frame.FRAME_FLAG);
 
-        return Frame.deserialize(buf);
+        Frame f = Frame.deserialize(buf);
+        appendLog("recv: " + f);
+        return f;
     }
 
     public void writeFrame(Frame f) throws IOException {
+        appendLog("sent: " + f);
         Buffer buf = f.serialize();
         buf.writeTo(out);
         out.flush();
+    }
+
+    protected void appendLog(String msg) {
+        log.add(msg);
+        if (this.printLog) {
+            System.out.println(msg);
+        }
+    }
+
+    public void printLog() {
+        for (String msg : log) {
+            System.out.println(msg);
+        }
     }
 }
