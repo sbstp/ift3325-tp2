@@ -53,16 +53,18 @@ public class Sender {
 
     public void mainLoop() throws IOException {
         stream.writeFrame(Frame.newConnection());
-        while (!queue.isEmpty()) {
+        // loop as long as there is data in the queue or the window
+        while (!queue.isEmpty() || !window.isEmpty()) {
             refillWindow(); // if every frame in the window has been acked, load a new window
             sendWindow(); // send every frame not acked in order
-            System.out.println("after send");
-            // // receive messages until every frame is acked or an error is sent
+
+            // receive messages until every frame is acked or an error is sent
             boolean hasErrors = false;
             while (!isWindowAcked() && !hasErrors) {
                 try {
+                    // TODO timeout
                     Frame f = stream.readFrame();
-                    System.out.println("received: " + f);
+
                     if (f.type == Frame.TYPE_ACKNOLEDGE) {
                         // ack the packet with the given num
                         window.get(f.num).ack();
