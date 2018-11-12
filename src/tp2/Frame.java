@@ -13,47 +13,47 @@ public class Frame {
 
     public static final byte TYPE_INFO = (byte) 'I';
     public static final byte TYPE_CONNECTION = (byte) 'C';
-    public static final byte TYPE_ACKNOLEDGE = (byte) 'A';
+    public static final byte TYPE_ACKNOWLEDGE = (byte) 'A';
     public static final byte TYPE_REJECT = (byte) 'R';
     public static final byte TYPE_END = (byte) 'F';
-    public static final byte TYPE_PBIT = (byte) 'P';
+    public static final byte TYPE_POLL = (byte) 'P';
 
     public byte type;
     public byte num;
     public Buffer data;
     public BitVector crc;
 
-    private Frame(byte type, byte num, Buffer data) {
-        this.type = type;
-        this.num = num;
+    private Frame(int type, int num, Buffer data) {
+        this.type = (byte) type;
+        this.num = (byte) num;
         this.data = data;
-        this.crc = PolynomialGeneration.polynomialGenerator(type, num, data).padLeft();
+        this.crc = PolynomialGeneration.polynomialGenerator((byte) type, (byte) num, data).padLeft();
     }
 
-    private Frame(byte type, byte num) {
+    private Frame(int type, int num) {
         this(type, num, new Buffer());
     }
 
-    private Frame(byte type) {
-        this(type, (byte) 0);
+    private Frame(int type) {
+        this(type, 0);
     }
 
     private Frame() {
     }
 
-    public static Frame newInfo(byte num, Buffer data) {
+    public static Frame newInfo(int num, Buffer data) {
         return new Frame(TYPE_INFO, num, data);
     }
 
-    public static Frame newConnection() {
-        return new Frame(TYPE_CONNECTION);
+    public static Frame newConnection(int num) {
+        return new Frame(TYPE_CONNECTION, num);
     }
 
-    public static Frame newAcknoledge(byte num) {
-        return new Frame(TYPE_ACKNOLEDGE, num);
+    public static Frame newAcknoledge(int num) {
+        return new Frame(TYPE_ACKNOWLEDGE, num);
     }
 
-    public static Frame newReject(byte num) {
+    public static Frame newReject(int num) {
         return new Frame(TYPE_REJECT, num);
     }
 
@@ -61,8 +61,8 @@ public class Frame {
         return new Frame(TYPE_END);
     }
 
-    public static Frame newPbit() {
-        return new Frame(TYPE_PBIT);
+    public static Frame newPoll() {
+        return new Frame(TYPE_POLL);
     }
 
     /**
@@ -128,9 +128,20 @@ public class Frame {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        } else if (o instanceof Frame) {
+            Frame f = (Frame) o;
+            return f.type == type && f.num == num && f.data.equals(data) && f.crc.equals(crc);
+        }
+        return false;
+    }
+
+    @Override
     public String toString() {
         switch (type) {
-        case Frame.TYPE_ACKNOLEDGE:
+        case Frame.TYPE_ACKNOWLEDGE:
             return String.format("Frame(ACK, num=%d)", num);
         case Frame.TYPE_CONNECTION:
             return String.format("Frame(CONNECTION)");
@@ -138,8 +149,8 @@ public class Frame {
             return String.format("Frame(END)");
         case Frame.TYPE_INFO:
             return String.format("Frame(INFO, num=%d, data='%s')", num, new String(data.toBytes()));
-        case Frame.TYPE_PBIT:
-            return String.format("Frame(PBIT)");
+        case Frame.TYPE_POLL:
+            return String.format("Frame(POLL)");
         case Frame.TYPE_REJECT:
             return String.format("Frame(REJECT, num=%d)", num);
         default:

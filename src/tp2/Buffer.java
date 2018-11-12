@@ -124,22 +124,28 @@ public class Buffer implements Iterable<Byte> {
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof byte[]) {
+        if (o == this) {
+            return true;
+        } else if (o instanceof byte[]) {
             byte[] bytes = (byte[]) o;
-            if (bytes.length != length())
+            if (bytes.length != length()) {
                 return false;
+            }
             for (int i = 0; i < length(); i++) {
-                if (bytes[i] != get(i))
+                if (bytes[i] != get(i)) {
                     return false;
+                }
             }
             return true;
         } else if (o instanceof Buffer) {
             Buffer buf = (Buffer) o;
-            if (buf.length() != length())
+            if (buf.length() != length()) {
                 return false;
+            }
             for (int i = 0; i < length(); i++) {
-                if (buf.get(i) != get(i))
+                if (buf.get(i) != get(i)) {
                     return false;
+                }
             }
             return true;
         }

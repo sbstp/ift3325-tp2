@@ -66,7 +66,7 @@ public class BitVector implements Iterable<Boolean> {
 
     /**
      * Push every bit for each byte into this vector.
-     * 
+     *
      * @param buf
      */
     public void push(Buffer buf) {
@@ -274,15 +274,17 @@ public class BitVector implements Iterable<Boolean> {
 
     @Override
     public boolean equals(Object o) {
-        if (o == this)
+        if (o == this) {
             return true;
-        if (o instanceof BitVector) {
+        } else if (o instanceof BitVector) {
             BitVector other = (BitVector) o;
-            if (length() != other.length())
+            if (length() != other.length()) {
                 return false;
+            }
             for (int i = 0; i < length(); i++) {
-                if (get(i) != other.get(i))
+                if (get(i) != other.get(i)) {
                     return false;
+                }
             }
             return true;
         }

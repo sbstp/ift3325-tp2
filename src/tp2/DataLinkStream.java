@@ -9,6 +9,8 @@ import java.net.Socket;
 
 public class DataLinkStream {
 
+    public static final int TIMEOUT = 3000;
+
     private Socket sock;
     private DataInputStream in;
     private DataOutputStream out;
@@ -28,6 +30,8 @@ public class DataLinkStream {
     }
 
     public Frame readFrame() throws IOException, DeserializationException, CRCValidationException {
+        sock.setSoTimeout(TIMEOUT);
+
         Buffer buf = new Buffer();
         byte b;
 
@@ -38,11 +42,11 @@ public class DataLinkStream {
         buf.push(b);
 
         // append to the buffer until we see the end marker
-        b = in.readByte();
-        while (b != Frame.FRAME_FLAG) {
+        do {
             b = in.readByte();
             buf.push(b);
-        }
+        } while (b != Frame.FRAME_FLAG);
+
         return Frame.deserialize(buf);
     }
 
