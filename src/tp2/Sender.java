@@ -15,7 +15,7 @@ import java.util.ArrayList;
 public class Sender {
 
     public static void main(String[] args) throws IOException {
-        DataLinkStream stream = new DataLinkStream("localhost", 6969);
+        DataLinkStream stream = new UnreliableDataLinkStream("localhost", 6969);
         stream.setPrintLog(true);
         stream.setTimeout(3000);
         Sender s = new Sender(stream, 5);

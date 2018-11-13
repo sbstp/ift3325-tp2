@@ -30,29 +30,47 @@ public class Receiver {
         stream.setPrintLog(true);
 
         boolean finished = false;
+        Frame lastFrame = null; // keep the last frame in memory to avoid sending the same frame multiple times
 
         while (!finished) {
+            Frame sendFrame = null;
             try {
                 Frame f = stream.readFrame();
 
                 if (f.type == Frame.TYPE_CONNECTION) {
+                    // ready to receive first frame
                     windowSize = f.num;
-                    stream.writeFrame(Frame.newAcknoledge(0));
+                    sendFrame = Frame.newAcknoledge(0);
                 } else if (f.type == Frame.TYPE_INFO) {
+                    // if frame is not the one we expect, reject
                     if (f.num != expected) {
-                        stream.writeFrame(Frame.newReject(expected));
+                        sendFrame = Frame.newReject(expected);
                     } else {
+                        // frame is the one we expect, add to buffer and send ready to receive next
+                        // frame
                         data.push(f.data);
                         expected = (expected + 1) % windowSize;
-                        stream.writeFrame(Frame.newAcknoledge(expected));
+                        sendFrame = Frame.newAcknoledge(expected);
                     }
+                } else if (f.type == Frame.TYPE_POLL) {
+                    lastFrame = null; // forget was the last frame was
+                    sendFrame = Frame.newAcknoledge(expected);
                 } else if (f.type == Frame.TYPE_END) {
+                    // we got the final frame, stop receiving
                     finished = true;
                 }
             } catch (DeserializationException | CRCValidationException e) {
-                stream.writeFrame(Frame.newReject(expected));
-                e.printStackTrace();
+                // deserialization/CRC check error, reject the frame
+                lastFrame = null;
+                sendFrame = Frame.newReject(expected);
             }
+
+            // avoid sending duplicate frames
+            if (sendFrame != null && !sendFrame.equals(lastFrame)) {
+                stream.writeFrame(sendFrame);
+                lastFrame = sendFrame;
+            }
+
         }
     }
 

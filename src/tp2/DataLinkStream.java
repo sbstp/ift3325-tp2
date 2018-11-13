@@ -38,6 +38,10 @@ public class DataLinkStream {
     }
 
     public Frame readFrame() throws IOException, DeserializationException, CRCValidationException {
+        return readFrame(false);
+    }
+
+    protected Frame readFrame(boolean noLog) throws IOException, DeserializationException, CRCValidationException {
         Buffer buf = new Buffer();
         byte b;
 
@@ -54,21 +58,30 @@ public class DataLinkStream {
         } while (b != Frame.FRAME_FLAG);
 
         Frame f = Frame.deserialize(buf);
-        appendLog("recv: " + f);
+        appendLog("recv", f, noLog);
         return f;
     }
 
     public void writeFrame(Frame f) throws IOException {
-        appendLog("sent: " + f);
+        appendLog("sent", f);
         Buffer buf = f.serialize();
         buf.writeTo(out);
         out.flush();
     }
 
-    protected void appendLog(String msg) {
-        log.add(msg);
-        if (this.printLog) {
-            System.out.println(msg);
+    protected void appendLog(String event, Frame f) {
+        appendLog(event, f, false);
+    }
+
+    protected void appendLog(String event, Frame f, boolean noLog) {
+        appendLog(event, f.toString(), noLog);
+    }
+
+    protected void appendLog(String event, String msg, boolean noLog) {
+        String entry = String.format("%16s:    %s", event, msg);
+        log.add(entry);
+        if (this.printLog && !noLog) {
+            System.out.println(entry);
         }
     }
 

@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 public class Frame {
     // 100 octets maximum de données par trames
-    public static final int MTU = 50;
+    public static final int MTU = 128;
 
     public static final byte FRAME_FLAG = Byte.parseByte("01111110", 2);
 

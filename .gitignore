@@ -1,4 +1,5 @@
 bin/
 dist/
 .vscode/
-destination.txt
+*.txt
+!source.txt

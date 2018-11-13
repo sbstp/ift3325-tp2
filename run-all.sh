@@ -1,20 +1,21 @@
 #!/bin/bash
 
 if ant dist ; then
-    RECV_OUT=`mktemp`
-    SEND_OUT=`mktemp`
-
-    java -jar dist/receiver.jar > "$RECV_OUT" &
+    java -jar dist/receiver.jar &> "recv.txt" &
     RECV_PID=$!
 
-    java -jar dist/sender.jar > "$SEND_OUT" &
+    sleep 1
+
+    java -jar dist/sender.jar > "send.txt" &
     SEND_PID=$!
+
+    function finish {
+        kill "$RECV_PID"
+        kill "$SEND_PID"
+    }
+
+    trap finish INT
 
     wait "$RECV_PID"
     wait "$SEND_PID"
-
-    echo "Receiver:"
-    cat "$RECV_OUT"
-    echo "Sender:"
-    cat "$SEND_OUT"
 fi
