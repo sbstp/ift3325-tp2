@@ -69,6 +69,10 @@ public class DataLinkStream {
         out.flush();
     }
 
+    protected void appendLog(String event) {
+        appendLog(event, "", false);
+    }
+
     protected void appendLog(String event, Frame f) {
         appendLog(event, f, false);
     }
